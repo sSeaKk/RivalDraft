@@ -1,0 +1,12 @@
+name: RivalDraft
+version: '${project.version}'
+main: mc.sseakk.rivaldraft.RivalDraft
+api-version: '1.20'
+prefix: RivalDraft
+softdepend: [ RocketAPI, Duels ]
+authors: [ sSeaKk ]
+description: Tournament generation plugin
+
+commands:
+  test:
+      description: test command
