@@ -2,7 +2,10 @@ package mc.sseakk.rivaldraft.commands;
 
 import api.sseakk.rocketapi.util.MessageUtil;
 import mc.sseakk.rivaldraft.RivalDraft;
+import mc.sseakk.rivaldraft.TournamentManager;
 import mc.sseakk.rivaldraft.listeners.TestListener;
+import mc.sseakk.rivaldraft.tournaments.Tournament;
+import mc.sseakk.rivaldraft.tournaments.gamemodes.OrdinaryTournament;
 import me.realized.duels.api.Duels;
 import me.realized.duels.api.arena.Arena;
 import me.realized.duels.api.kit.Kit;
@@ -17,13 +20,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class TestCommand implements TabExecutor, Listener {
-    private RivalDraft plugin = RivalDraft.getInstance();
-    private Duels duels = this.plugin.getDuels();
+public class TestCommand implements TabExecutor {
+    private Duels duels = RivalDraft.getInstance().getDuels();
+    private TournamentManager tm = RivalDraft.getInstance().getTournamentManager();
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
         if(!(sender instanceof Player)){
-            MessageUtil.infoMessage(plugin, "You can't execute this command in console!");
+            MessageUtil.infoMessage(RivalDraft.getInstance(), "You can't execute this command in console!");
             return true;
         }
         Player player = (Player) sender;
@@ -69,17 +72,35 @@ public class TestCommand implements TabExecutor, Listener {
                     MessageUtil.playerMessage(player, dplayer.getName() + " added to the queue");
                 }
             }
+
+            if(args[0].equalsIgnoreCase("tournaments")){
+                if(tm.getTournament("test") == null){
+                    tm.newTournament(new OrdinaryTournament("test", new Date(2023-1900, Calendar.SEPTEMBER,23,20,00)));
+                }
+
+                if(tm.getTournament("test2") == null){
+                    tm.newTournament(new OrdinaryTournament("test2", new Date(2023-1900, Calendar.JULY,10,18,00)));
+                }
+
+                if(RivalDraft.getInstance().getTournamentManager().getTournament("test3") == null){
+                    tm.newTournament(new OrdinaryTournament("test3", new Date(2023-1900, Calendar.DECEMBER,7,16,00)));
+                }
+
+                MessageUtil.playerMessage(player, "Command executed.");
+                return true;
+            }
         }
 
         MessageUtil.playerMessage(player, "/test arena" +
-                "\n/test queue");
+                "\n/test queue" +
+                "\n/test tournaments");
         return true;
     }
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if(args.length == 1) {
-            List<String> tabList = Arrays.asList("arena", "queue");
+            List<String> tabList = Arrays.asList("arena", "queue","tournaments");
             String input = args[0].toLowerCase();
             List<String> completions = null;
 

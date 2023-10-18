@@ -1,35 +1,31 @@
 package mc.sseakk.rivaldraft;
 
-import api.sseakk.rocketapi.FileManager;
-import api.sseakk.rocketapi.util.MessageUtil;
+import com.mongodb.client.model.Filters;
 import mc.sseakk.rivaldraft.tournaments.Tournament;
+import mc.sseakk.rivaldraft.tournaments.gamemodes.OrdinaryTournament;
+import org.bson.Document;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Scanner;
-
 public class TournamentManager {
-    private FileManager fm;
     private RivalDraft plugin;
     private ArrayList<Tournament> tournaments;
     public TournamentManager(RivalDraft plugin){
         this.plugin = plugin;
-        this.fm = this.plugin.getFileManager();
         this.tournaments = new ArrayList<Tournament>();
     }
 
-    public void addTournament(Tournament tournament){
+    public void newTournament(Tournament tournament){
         this.tournaments.add(tournament);
         this.saveTournament(tournament);
-        MessageUtil.infoMessage(this.plugin, "Created or loaded tournament '"+tournament.getName()+"' dated for: "+tournament.getDateString());
+        this.plugin.getLogger().info("Created tournament '"+tournament.getName()+"' dated for: "+tournament.getDateString());
     }
 
+    public void loadTournament(Tournament tournament){
+        this.tournaments.add(tournament);
+        this.plugin.getLogger().info("Loaded tournament '"+tournament.getName()+"' dated for: "+tournament.getDateString());
+    }
     public Tournament getTournament(String name){
         for(Tournament tournament : this.tournaments){
             if(tournament.getName().equals(name)){
@@ -44,61 +40,27 @@ public class TournamentManager {
         for(Tournament tournament : this.tournaments){
             if(tournament.getName().equals(name)){
                 this.tournaments.remove(tournament);
+                RivalDraft.getInstance().getDatabase().getCollection("tournaments").findOneAndDelete(Filters.eq("name",name));
             }
         }
     }
 
     public void saveTournament(Tournament tournament){
-        fm.createFile("\\tournaments", tournament.getName()+".txt");
-        BufferedWriter writer = fm.getBufferedWriter();
+        if(RivalDraft.getInstance().isDatabaseConnected()){
+            Document doc = new Document("name",tournament.getName())
+                    .append("date",tournament.getDateString());
 
-        try{
-            writer.write("name="+tournament.getName()); writer.newLine();
-            writer.write("mode="); writer.newLine();
-            writer.write("date="+tournament.getDateString()); writer.newLine();
-            writer.write("fee="); writer.newLine();
-            writer.write("status="); writer.newLine();
-            writer.write("tier="); writer.newLine();
-            writer.write("type=");
-            writer.close();
-        } catch(IOException e){
-            e.printStackTrace();
+            RivalDraft.getInstance().getDatabase().getCollection("Tournaments").insertOne(doc);
         }
     }
 
     public void loadTournaments(){
-        if(!(new File(this.plugin.getDataFolder()+"\\tournaments")).exists()){
-            new File(this.plugin.getDataFolder()+"\\tournaments").mkdirs();
-        }
-        try {
-            File folder = this.fm.getFolder("\\tournaments");
-            File[] files = folder.listFiles();
-
-            for(File file : files){
-
-                Scanner scn = new Scanner(file);
-                String name = null;
-                Date date = null;
-
-                while(scn.hasNextLine()){
-                    String line = scn.nextLine(), value = null;
-
-                    if(line.startsWith("name=")){
-                        name = line.replaceFirst("name=", "");
-                    }
-
-                    if(line.startsWith("date=")){
-                        date = new SimpleDateFormat("dd/MM/yyyy HH:mm").parse(line.replaceFirst("date=", ""));
-                    }
-                }
-
-                Tournament tournament = new Tournament(name, date);
-                tournament.setHasFile(true);
+        this.plugin.getDatabase().getCollection("Tournaments").find().forEach(doc ->{
+            try {
+                loadTournament(new OrdinaryTournament(doc.getString("name"), new SimpleDateFormat("dd/MM/yyyy HH:mm").parse(doc.getString("date"))));
+            } catch (ParseException e) {
+                this.plugin.getLogger().warning("Can't parse the date of '"+doc.getString("name")+"' tournament. Skipping it.");
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        });
     }
 }

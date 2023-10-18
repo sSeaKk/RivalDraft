@@ -6,7 +6,7 @@
 
     <groupId>mc.sseakk</groupId>
     <artifactId>rivaldraft</artifactId>
-    <version>alpha0.1-b72</version>
+    <version>alpha0.1-b95</version>
     <packaging>jar</packaging>
 
     <name>RivalDraft</name>
@@ -85,13 +85,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>api.sseakk</groupId>
-            <artifactId>RocketAPI</artifactId>
-            <version>20</version>
-            <scope>system</scope>
-            <systemPath>C:/Users/Luciano/IdeaProjects/RocketAPI/target/RocketAPI-20.jar</systemPath>
-        </dependency>
-        <dependency>
             <groupId>com.github.Realizedd.Duels</groupId>
             <artifactId>duels-api</artifactId>
             <version>3.5.1</version>
@@ -101,6 +94,11 @@
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
             <version>4.9.1</version>
+        </dependency>
+        <dependency>
+            <groupId>api.sseakk</groupId>
+            <artifactId>rocketapi</artifactId>
+            <version>21</version>
         </dependency>
     </dependencies>
 </project>
